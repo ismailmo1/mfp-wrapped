@@ -57,11 +57,14 @@ def login_mfp(username: str, password: str) -> Session:
 
 
 def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
+    # cleanup column names
     df.columns = [
         "food",
         *[str(col).lower().replace("  ", "_") for col in df.iloc[0][1:]],
     ]
     df.drop(0, inplace=True)
+
+    # remove junk rows with no food data
     non_food_row_idx = df[
         df["food"].apply(
             lambda x: "Add Food  Quick Tools  Quick add calories" in str(x)
@@ -76,10 +79,13 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
     # add daily goal columns
     daily_goals_df = df[df["food"] == "Your Daily Goal"]
     new_cols = []
-    for col in daily_goals_df.columns:
+
+    # name goals with prefix "goal_"
+    for col in daily_goals_df.columns[1:]:
         new_cols.append("goal_" + str(col).split(" ")[0].lower())
     daily_goals_df.columns = new_cols
 
+    # add daily goals columsn to df
     new_df = pd.concat([df, daily_goals_df])
     new_df.fillna(method="bfill", inplace=True)
 
