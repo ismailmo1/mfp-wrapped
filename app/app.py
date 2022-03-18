@@ -46,9 +46,18 @@ for i in range(0, 101):
     time.sleep(0.01)
 
 df_21 = load_mfp_data(date(2021, 1, 1), date(2021, 12, 31))
+
 st.write(df_21)
 
+col_1, col_2, col_3, col_4 = st.columns(4)
+
+col_1.metric("Calories", df_21["calories_kcal"].sum(), delta="100%")
+col_2.metric("Carbs", df_21["carbs_g"].sum(), delta="100%")
+col_3.metric("Fats", df_21["fat_g"].sum(), delta="100%")
+col_4.metric("Protein", df_21["protein_g"].sum(), delta="100%")
+
 st.header("most common food entries")
+
 st.bar_chart(
     df_21.groupby("food").count()["date"].sort_values(ascending=False)[0:10]
 )
