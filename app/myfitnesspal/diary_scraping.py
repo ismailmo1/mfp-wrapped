@@ -90,6 +90,24 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
 
     # drop last 5 rows - non food items
     cleaned_df = new_df.drop(new_df.index[-5:]).reset_index(drop=True)
+    macro_cols = [
+        "carbs_g",
+        "fat_g",
+        "protein_g",
+        "goal_carbs_g",
+        "goal_fat_g",
+        "goal_protein_g",
+    ]
+    cleaned_df[macro_cols] = cleaned_df[macro_cols].applymap(
+        lambda x: x.split("  ")[0]
+    )
+
+    # convert datatypes
+    numeric_cols = [
+        col for col in cleaned_df.columns if "_g" in col or "calories" in col
+    ]
+    cleaned_df[numeric_cols] = cleaned_df[numeric_cols].apply(pd.to_numeric)
+
     return cleaned_df
 
 
@@ -130,7 +148,6 @@ def get_diary_data(
     user: str = None,
     pwd: str = None,
 ) -> pd.DataFrame:
-    # load secrets from .env
 
     if not public:
         if user and pwd:
@@ -141,10 +158,8 @@ def get_diary_data(
                 "You must provide a username and password for private diaries"
             )
 
-    # df = pd.DataFrame()
     while start_date < end_date:
         print(f"extracting diary for {start_date}")
         diary_df = extract_diary(mfp_session, start_date)
-        # pd.concat([df, diary_df], axis=0, join="outer")
         start_date += timedelta(days=1)
         yield diary_df
