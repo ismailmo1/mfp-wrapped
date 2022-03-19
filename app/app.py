@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 
 import streamlit as st
+from numerize import numerize as nz
 
 from app_utils import load_mfp_data
+from myfitnesspal.analysis import plot_most_common
 
 with st.sidebar:
     mfp_user = st.text_input(
@@ -31,15 +33,11 @@ if start_btn:
     # st.write(df_21)
     col_1, col_2, col_3, col_4 = st.columns(4)
 
-    col_1.metric("Calories", diary_df["calories_kcal"].sum(), delta="100%")
-    col_2.metric("Carbs", diary_df["carbs_g"].sum(), delta="100%")
-    col_3.metric("Fats", diary_df["fat_g"].sum(), delta="100%")
-    col_4.metric("Protein", diary_df["protein_g"].sum(), delta="100%")
-
-    st.header("most common food entries")
-
-    st.bar_chart(
-        diary_df.groupby("food")
-        .count()["date"]
-        .sort_values(ascending=False)[0:10]
+    col_1.metric(
+        "Calories (kcal)", nz.numerize(int(diary_df["calories_kcal"].sum()))
     )
+    col_2.metric("Carbs (g)", nz.numerize(int(diary_df["carbs_g"].sum())))
+    col_3.metric("Fats (g)", nz.numerize(int(diary_df["fat_g"].sum())))
+    col_4.metric("Protein (g)", nz.numerize(int(diary_df["protein_g"].sum())))
+
+    st.plotly_chart(plot_most_common(diary_df), use_container_width=True)
