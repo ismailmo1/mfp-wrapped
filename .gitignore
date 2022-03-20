@@ -2,3 +2,4 @@ venv/
 .git
 .env
 .csv
+*__pycache__*

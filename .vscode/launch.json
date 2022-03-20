@@ -1,4 +1,5 @@
 {"configurations":[{
+    "cwd": "${workspaceFolder}/app",
     "name": "Streamlit",
     "type": "python",
     "request": "launch",

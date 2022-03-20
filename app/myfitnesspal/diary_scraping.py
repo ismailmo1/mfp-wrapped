@@ -48,7 +48,6 @@ def login_mfp(username: str, password: str) -> Session:
     res = session.get("https://www.myfitnesspal.com/")
 
     if res.text.find("/account/logout") > 0:
-        print("logged in successfully!")
         return session
     else:
         raise Exception("login failed!")
@@ -158,8 +157,7 @@ def get_diary_data(
                 "You must provide a username and password for private diaries"
             )
 
-    while start_date < end_date:
-        print(f"extracting diary for {start_date}")
+    while start_date <= end_date:
         diary_df = extract_diary(mfp_session, start_date)
         start_date += timedelta(days=1)
         yield diary_df

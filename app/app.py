@@ -4,12 +4,15 @@ import streamlit as st
 from numerize import numerize as nz
 
 from app_utils import load_mfp_data
-from myfitnesspal.analysis import plot_most_common
+from myfitnesspal.analysis import plot_most_common, total_logged_days
+
+st.set_page_config("Wrapped", page_icon="burrito.png")
 
 with st.sidebar:
     mfp_user = st.text_input(
         "myfitnesspal username", "ismailmo1", placeholder="username"
     )
+    st.caption("Don't forget to make your diary public!")
     today = datetime.now().date()
     try:
         start_date, end_date = st.date_input(
@@ -18,17 +21,36 @@ with st.sidebar:
             max_value=today,
         )
     except ValueError:
-        st.warning("you must pick a date range (two dates)!")
-    st.caption("Don't forget to make your diary public!")
+        st.warning("you must pick a date range (start date - end date)!")
 
     start_btn = st.button("Get Data")
 
 st.title("myfitnesspal wrapped 🌯")
 
+starter_msg = st.empty()
+starter_img = st.empty()
+
+starter_msg.markdown(
+    """Inspired by Spotify's [Wrapped]\
+(https://en.wikipedia.org/wiki/Spotify_Wrapped) marketing campaign
+
+← Enter your mfp username in the sidebar, make your diary public and
+let's see what you've been eating!"""
+)
+
+with starter_img.expander("Analysis awaits!"):
+    st.image("himym.jpg", caption="what you can look forward to")
 
 if start_btn:
+    starter_msg.empty()
+    starter_img.empty()
     diary_df = load_mfp_data(start_date, end_date)
-    st.write(f"{len(diary_df)} food entries")
+    st.metric(
+        "Total days logged",
+        f"{total_logged_days(diary_df)}/{(end_date-start_date).days +1}",
+    )
+
+    st.write(f"{len(diary_df)} total food line entries")
 
     # st.write(df_21)
     col_1, col_2, col_3, col_4 = st.columns(4)
