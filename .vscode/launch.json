@@ -6,7 +6,7 @@
     "module": "streamlit",
     "args": [
         "run",
-        "${file}",
+        "app.py",
         "--server.port",
         "5000"
     ]}]}

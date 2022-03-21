@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta
 
 import streamlit as st
-from numerize import numerize as nz
 
-from app_utils import load_mfp_data
-from myfitnesspal.analysis import plot_most_common, total_logged_days
+from app_utils import load_mfp_data, show_metrics
+from myfitnesspal.analysis import (
+    most_common_macros,
+    plot_most_common,
+    total_logged_days,
+    total_macros,
+)
 
 st.set_page_config("Wrapped", page_icon="burrito.png")
 
@@ -50,16 +54,7 @@ if start_btn:
         f"{total_logged_days(diary_df)}/{(end_date-start_date).days +1}",
     )
 
-    st.write(f"{len(diary_df)} total food line entries")
-
-    # st.write(df_21)
-    col_1, col_2, col_3, col_4 = st.columns(4)
-
-    col_1.metric(
-        "Calories (kcal)", nz.numerize(int(diary_df["calories_kcal"].sum()))
-    )
-    col_2.metric("Carbs (g)", nz.numerize(int(diary_df["carbs_g"].sum())))
-    col_3.metric("Fats (g)", nz.numerize(int(diary_df["fat_g"].sum())))
-    col_4.metric("Protein (g)", nz.numerize(int(diary_df["protein_g"].sum())))
-
+    st.header("Totals")
+    show_metrics(total_macros(diary_df))
+    st.write(most_common_macros(diary_df))
     st.plotly_chart(plot_most_common(diary_df), use_container_width=True)

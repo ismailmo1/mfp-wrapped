@@ -37,3 +37,19 @@ def load_mfp_data(start_date: date, end_date: date):
     date_update.empty()
 
     return diary_df
+
+
+def show_metrics(metrics: dict) -> None:
+    """show all metrics on one row
+
+    Args:
+        metrics (dict): dict of form: label = key, value= (value, delta)
+    """
+    num_columns = len(metrics)
+    columns = st.columns(num_columns)
+    for idx, (key, item) in enumerate(metrics.items()):
+
+        if isinstance(item, tuple):
+            columns[idx].metric(label=key, value=item[0], delta=item[1])
+        else:
+            columns[idx].metric(label=key, value=item)
