@@ -38,9 +38,40 @@ def total_logged_days(diary_df: pd.DataFrame) -> pd.DataFrame:
     return len(diary_df["date"].unique())
 
 
-def plot_macro_trends(diary_df: pd.DataFrame):
-    # plot macro intake over time
-    pass
+def plot_macro_treemap(diary_df: pd.DataFrame):
+    macro_kcals = {"carbs_g": 4, "fat_g": 9, "protein_g": 4}
+
+    # add kcal column for macros
+    for key, val in macro_kcals.items():
+        diary_df[key.split("_")[0] + "_kcal"] = diary_df[key] * val
+
+    diary_df_kcals = diary_df[
+        [
+            "food",
+            "calories_kcal",
+            "carbs_kcal",
+            "fat_kcal",
+            "protein_kcal",
+            "date",
+        ]
+    ]
+    melted_df = diary_df_kcals.drop("calories_kcal", axis=1).melt(
+        ["food", "date"]
+    )
+    melted_df = melted_df.rename({"value": "kcal"}, axis=1)
+
+    # add meal counter - i.e. how many meals it was eaten for
+    melted_df["meals"] = 1
+
+    melted_df = melted_df.groupby(["food", "date", "variable"]).sum()
+    melted_df = melted_df.reset_index()
+
+    return px.treemap(
+        melted_df,
+        path=[px.Constant("all"), "variable", "food", "date"],
+        values="kcal",
+        hover_data=["meals"],
+    )
 
 
 def plot_kcal_trends(diary_df: pd.DataFrame):

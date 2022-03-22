@@ -4,13 +4,13 @@ import streamlit as st
 
 from app_utils import load_mfp_data, show_metrics
 from myfitnesspal.analysis import (
-    most_common_macros,
+    plot_macro_treemap,
     plot_most_common,
     total_logged_days,
     total_macros,
 )
 
-st.set_page_config("Wrapped", page_icon="burrito.png")
+st.set_page_config("Wrapped", page_icon="burrito.png", layout="wide")
 
 with st.sidebar:
     mfp_user = st.text_input(
@@ -56,5 +56,5 @@ if start_btn:
 
     st.header("Totals")
     show_metrics(total_macros(diary_df))
-    st.write(most_common_macros(diary_df))
     st.plotly_chart(plot_most_common(diary_df), use_container_width=True)
+    st.plotly_chart(plot_macro_treemap(diary_df), use_container_width=True)
