@@ -63,9 +63,7 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
 
     # remove junk rows with no food data
     non_food_row_idx = df[
-        df["food"].apply(
-            lambda x: "Add Food  Quick Tools  Quick add calories" in str(x)
-        )
+        df["food"].apply(lambda x: "quick tools" in str(x).lower())
     ].index
     meal_title_row_idx = df[df["food"].apply(lambda x: len(str(x)) == 1)].index
     non_food_row_idx = non_food_row_idx.append(meal_title_row_idx)
@@ -74,7 +72,9 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
     df.dropna(axis=(1), how="all", inplace=True)
 
     # add daily goal columns
-    daily_goals_df = df[df["food"] == "Your Daily Goal"]
+    daily_goals_df = df[
+        df["food"].apply(lambda x: "daily goal" in str(x).lower())
+    ]
     new_cols = ["food"]
 
     # name goals with prefix "goal_"
@@ -107,15 +107,24 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
     ]
     cleaned_df[numeric_cols] = cleaned_df[numeric_cols].apply(pd.to_numeric)
 
+    cleaned_df["food"] = cleaned_df["food"].apply(
+        lambda x: "".join(str(x).split(",")[:-1])
+    )
+    cleaned_df["qty"] = cleaned_df["food"].apply(
+        lambda x: "".join(str(x).split(",")[-1])
+    )
+
     return cleaned_df
 
 
-def extract_diary(logged_in_mfp_session: Session, date: date) -> pd.DataFrame:
+def extract_diary(
+    logged_in_mfp_session: Session, date: date, user: str = None
+) -> pd.DataFrame:
     """extract dataframe of food diary from date.
 
     Args:
         logged_in_mfp_session (Session): authenticated session on myfitnesspal
-        (use login_mfp)
+        (use login_mfp if diary not public)
         date (date): date to extract food diary from
 
     Raises:
@@ -128,9 +137,13 @@ def extract_diary(logged_in_mfp_session: Session, date: date) -> pd.DataFrame:
         all other data (macro targets, totals etc) is added as a column.
     """
     date_param = f"date={date.isoformat()}"
-    res = logged_in_mfp_session.get(
-        f"https://www.myfitnesspal.com/food/diary?{date_param}"
-    )
+
+    if user:
+        url = f"https://www.myfitnesspal.com/food/diary/{user}?{date_param}"
+    else:
+        url = f"https://www.myfitnesspal.com/food/diary?{date_param}"
+
+    res = logged_in_mfp_session.get(url)
     try:
         df = pd.read_html(res.text, flavor="lxml")[0]
         clean_df = clean_mfp_extract(df)
@@ -148,7 +161,9 @@ def get_diary_data(
     pwd: str = None,
 ) -> pd.DataFrame:
 
-    if not public:
+    if public:
+        mfp_session = Session()
+    else:
         if user and pwd:
             # create session
             mfp_session = login_mfp(user, pwd)
@@ -158,6 +173,6 @@ def get_diary_data(
             )
 
     while start_date <= end_date:
-        diary_df = extract_diary(mfp_session, start_date)
+        diary_df = extract_diary(mfp_session, start_date, user)
         start_date += timedelta(days=1)
         yield diary_df

@@ -14,7 +14,7 @@ st.set_page_config("Wrapped", page_icon="burrito.png")
 
 with st.sidebar:
     mfp_user = st.text_input(
-        "myfitnesspal username", "ismailmo1", placeholder="username"
+        "myfitnesspal username", "ismailmo", placeholder="username"
     )
     st.caption("Don't forget to make your diary public!")
     today = datetime.now().date()
@@ -48,7 +48,7 @@ with starter_img.expander("Analysis awaits!"):
 if start_btn:
     starter_msg.empty()
     starter_img.empty()
-    diary_df = load_mfp_data(start_date, end_date)
+    diary_df = load_mfp_data(start_date, end_date, mfp_user)
     st.metric(
         "Total days logged",
         f"{total_logged_days(diary_df)}/{(end_date-start_date).days +1}",

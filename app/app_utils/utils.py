@@ -1,4 +1,3 @@
-import os
 from datetime import date, timedelta
 
 import pandas as pd
@@ -10,22 +9,14 @@ load_dotenv()
 
 
 @st.cache(suppress_st_warning=True)
-def load_mfp_data(start_date: date, end_date: date):
+def load_mfp_data(start_date: date, end_date: date, user: str):
     prog_bar = st.progress(0)
     date_update = st.empty()
     diary_df = pd.DataFrame()
     progress = 0
     num_days = (end_date - start_date).days + 1
 
-    for idx, df in enumerate(
-        get_diary_data(
-            start_date,
-            end_date,
-            public=False,
-            user=os.environ["MFP_USER"],
-            pwd=os.environ["MFP_PASS"],
-        )
-    ):
+    for idx, df in enumerate(get_diary_data(start_date, end_date, user=user)):
         progress = round((idx + 1) / num_days, 2)
         prog_bar.progress(progress)
         date_update.text(
