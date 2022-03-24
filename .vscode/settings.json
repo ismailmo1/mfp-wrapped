@@ -1,2 +1,7 @@
-{"python.analysis.extraPaths": ["app/"]
+{
+    "python.analysis.extraPaths": [
+        "app/"
+    ],
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
 }
