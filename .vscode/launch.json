@@ -1,12 +1,17 @@
-{"configurations":[{
-    "cwd": "${workspaceFolder}/app",
-    "name": "Streamlit",
-    "type": "python",
-    "request": "launch",
-    "module": "streamlit",
-    "args": [
-        "run",
-        "main.py",
-        "--server.port",
-        "5000"
-    ]}]}
+{
+    "configurations": [
+        {
+            "cwd": "${workspaceFolder}",
+            "name": "Streamlit",
+            "type": "python",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "app/main.py",
+                "--server.port",
+                "5000"
+            ]
+        }
+    ]
+}
