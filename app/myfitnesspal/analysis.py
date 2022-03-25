@@ -1,3 +1,6 @@
+"""
+Helper functions to plot and analyse myfitnesspal diary dataframe
+"""
 from typing import Dict, Tuple
 
 import pandas as pd
@@ -34,16 +37,19 @@ def plot_most_common(diary_df: pd.DataFrame, top_n=10) -> Figure:
 
 
 def total_logged_days(diary_df: pd.DataFrame) -> pd.DataFrame:
-    # return num of days logged
+    """return num of days logged"""
     return len(diary_df["date"].unique())
 
 
-def plot_macro_treemap(diary_df: pd.DataFrame):
+def plot_macro_treemap(diary_df: pd.DataFrame, macro: str = "all") -> Figure:
+    """
+    plotly treemap of diary for macronutrient with hierarchy of food and date
+    """
     macro_kcals = {"carbs_g": 4, "fat_g": 9, "protein_g": 4}
 
     # add kcal column for macros
     for key, val in macro_kcals.items():
-        diary_df[key.split("_")[0] + "_kcal"] = diary_df[key] * val
+        diary_df[key.split("_", maxsplit=1)[0] + "_kcal"] = diary_df[key] * val
 
     diary_df_kcals = diary_df[
         [
@@ -59,16 +65,22 @@ def plot_macro_treemap(diary_df: pd.DataFrame):
         ["food", "date"]
     )
     melted_df = melted_df.rename({"value": "kcal"}, axis=1)
-
+    melted_df["kcal"] = pd.to_numeric(melted_df["kcal"])
     # add meal counter - i.e. how many meals it was eaten for
     melted_df["meals"] = 1
 
     melted_df = melted_df.groupby(["food", "date", "variable"]).sum()
     melted_df = melted_df.reset_index()
 
+    if macro == "all":
+        path = [px.Constant("all"), "variable", "food", "date"]
+    else:
+        path = [px.Constant("all"), "food", "date"]
+        melted_df = melted_df[melted_df["variable"] == f"{macro}_kcal"]
+
     return px.treemap(
         melted_df,
-        path=[px.Constant("all"), "variable", "food", "date"],
+        path=path,
         values="kcal",
         hover_data=["meals"],
     )
@@ -80,7 +92,9 @@ def plot_kcal_trends(diary_df: pd.DataFrame):
 
 
 def most_common_macros(diary_df: pd.DataFrame) -> Dict[str, Tuple]:
-    # return most common food item for each macro type
+    """
+    return most common source for each macro type
+    """
     food_totals_df = diary_df.groupby("food").sum()[
         [
             "calories_kcal",
@@ -119,7 +133,10 @@ def most_common_macros(diary_df: pd.DataFrame) -> Dict[str, Tuple]:
     }
 
 
-def total_macros(diary_df: pd.DataFrame):
+def total_macros(diary_df: pd.DataFrame) -> Dict[str, int]:
+    """
+    Return totals for calories and each macro
+    """
     return {
         "Calories (kcal)": nz.numerize(int(diary_df["calories_kcal"].sum())),
         "Carbs (g)": nz.numerize(int(diary_df["carbs_g"].sum())),
