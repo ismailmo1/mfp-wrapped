@@ -25,7 +25,18 @@
 		"python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
 		"python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
 		"python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-		"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+		"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+		"python.formatting.provider": "black",
+		"python.linting.flake8Enabled": true,
+		"python.linting.flake8Args": [
+			"--max-line-length=79",
+			"--ignore=E203"
+		],
+		"python.formatting.blackArgs": [
+			"--line-length=79"
+		],
+		"python.autoComplete.addBrackets": true,
+		"python.analysis.completeFunctionParens": true,
 	},
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
