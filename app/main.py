@@ -7,6 +7,7 @@ import streamlit as st
 
 from app.app_utils import load_mfp_data, show_metrics
 from app.myfitnesspal.analysis import (
+    plot_intake_goals,
     plot_macro_treemap,
     plot_most_common,
     total_logged_days,
@@ -33,23 +34,50 @@ def run_analysis():
     show_metrics(total_macros(diary_df))
     st.plotly_chart(plot_most_common(diary_df), use_container_width=True)
 
+    st.plotly_chart(
+        plot_macro_treemap(diary_df, st.session_state["selected_macro"]),
+        use_container_width=True,
+    )
     st.radio(
         "View breakdown for:",
         ["all", "carbs", "fat", "protein"],
         key="selected_macro",
     )
-    st.plotly_chart(
-        plot_macro_treemap(diary_df, st.session_state["selected_macro"]),
-        use_container_width=True,
-    )
-    # radio button css
+    # css to center input elements
     st.write(
         """<style>
-        div.row-widget.stRadio > div{flex-direction:row;}
+        div.row-widget.stRadio > div,
+        div.row-widget.stRadio > label,
+        div.row-widget.stCheckbox > label{
+            flex-direction:row;justify-content:center;
+            }
         .st-dw{padding-right:5%};
-        </style>""",
+        </style><hr>""",
         unsafe_allow_html=True,
     )
+
+    st.plotly_chart(
+        plot_intake_goals(
+            diary_df,
+            calories=st.session_state["show_calories"],
+            units=st.session_state["selected_intake_units"],
+        ),
+        use_container_width=True,
+    )
+    radio_col_1, radio_col_2 = st.columns(2)
+    with radio_col_1:
+        st.checkbox(
+            "Show total calories",
+            key="show_calories",
+            disabled=st.session_state["selected_intake_units"] == "grams",
+        )
+    with radio_col_2:
+        st.radio(
+            "show in units of:",
+            ["grams", "calories"],
+            key="selected_intake_units",
+            disabled=st.session_state["show_calories"],
+        )
 
 
 def intial_page_load():
@@ -57,7 +85,12 @@ def intial_page_load():
     run on initial page load
     """
     st.session_state["welcomed"] = True
+    # calorie breakdown option
     st.session_state["selected_macro"] = "all"
+    # intake vs goals chart option
+    st.session_state["show_calories"] = False
+    st.session_state["selected_intake_units"] = "calories"
+
     starter_msg = st.empty()
     starter_img = st.empty()
 
