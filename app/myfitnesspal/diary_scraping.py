@@ -145,8 +145,8 @@ def extract_diary(
 
     res = logged_in_mfp_session.get(url)
     try:
-        df = pd.read_html(res.text, flavor="lxml")[0]
-        clean_df = clean_mfp_extract(df)
+        html_df = pd.read_html(res.text, flavor="lxml")[0]
+        clean_df = clean_mfp_extract(html_df)
         clean_df["date"] = date
         return clean_df
     except ValueError:
