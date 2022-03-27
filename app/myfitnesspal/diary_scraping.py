@@ -118,7 +118,7 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_diary(
-    logged_in_mfp_session: Session, date: date, user: str = None
+    logged_in_mfp_session: Session, diary_date: date, user: str = None
 ) -> pd.DataFrame:
     """extract dataframe of food diary from date.
 
@@ -136,7 +136,7 @@ def extract_diary(
         date is added as an extra column to the dataframe
         all other data (macro targets, totals etc) is added as a column.
     """
-    date_param = f"date={date.isoformat()}"
+    date_param = f"date={diary_date.isoformat()}"
 
     if user:
         url = f"https://www.myfitnesspal.com/food/diary/{user}?{date_param}"
@@ -147,10 +147,10 @@ def extract_diary(
     try:
         html_df = pd.read_html(res.text, flavor="lxml")[0]
         clean_df = clean_mfp_extract(html_df)
-        clean_df["date"] = date
+        clean_df["date"] = diary_date
         return clean_df
-    except ValueError:
-        raise Exception(ValueError.__repr__())
+    except ValueError as error:
+        raise ValueError("No diary table found for {diary_date}!") from error
 
 
 def get_diary_data(

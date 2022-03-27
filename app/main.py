@@ -103,7 +103,9 @@ def intial_page_load():
     )
 
     with starter_img.expander("Preview"):
-        st.image("app/himym.jpg", caption="what you can look forward to")
+        st.image(
+            "app/images/himym.jpg", caption="what you can look forward to"
+        )
 
     if start_btn:
         starter_msg.empty()
@@ -111,7 +113,9 @@ def intial_page_load():
         run_analysis()
 
 
-st.set_page_config("Wrapped", page_icon="app/burrito.png", layout="wide")
+st.set_page_config(
+    "mfp wrapped", page_icon="app/images/mfp-icon.png", layout="wide"
+)
 st.title("myfitnesspal wrapped 🌯")
 with st.sidebar:
     mfp_user = st.text_input(
