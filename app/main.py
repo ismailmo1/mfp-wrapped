@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 
-from app.app_utils import load_mfp_data, show_metrics
-from app.myfitnesspal.analysis import (
+from app_utils import load_mfp_data, show_metrics
+from myfitnesspal.analysis import (
     plot_intake_goals,
     plot_macro_treemap,
     plot_most_common,
@@ -20,9 +20,15 @@ def run_analysis():
     main function to scrape mfp diaries and analyse data
     """
 
-    st.session_state["diary_df"] = load_mfp_data(
-        start_date, end_date, mfp_user
-    ).copy()
+    try:
+        st.session_state["diary_df"] = load_mfp_data(
+            start_date, end_date, mfp_user
+        ).copy()
+    except ValueError:
+        st.error(
+            f"No Diary found for {mfp_user} - did you make the diary public?"
+        )
+        st.stop()
     diary_df = st.session_state["diary_df"]
 
     st.metric(
@@ -69,7 +75,9 @@ def run_analysis():
         st.checkbox(
             "Show total calories",
             key="show_calories",
-            disabled=st.session_state["selected_intake_units"] == "grams",
+            disabled=st.session_state["selected_intake_units"] == "grams"
+            and not st.session_state["show_calories"],  # NOQA
+            value=st.session_state["show_calories"],
         )
     with radio_col_2:
         st.radio(
@@ -103,9 +111,7 @@ def intial_page_load():
     )
 
     with starter_img.expander("Preview"):
-        st.image(
-            "app/images/himym.jpg", caption="what you can look forward to"
-        )
+        st.image("images/himym.jpg", caption="what you can look forward to")
 
     if start_btn:
         starter_msg.empty()
@@ -114,25 +120,36 @@ def intial_page_load():
 
 
 st.set_page_config(
-    "mfp wrapped", page_icon="app/images/mfp-icon.png", layout="wide"
+    "mfp wrapped",
+    page_icon="images/mfp-icon.png",
+    layout="wide",
+    menu_items={
+        "Get Help": "https://www.linkedin.com/in/ismailmo-chem/",
+        "Report a bug": "https://github.com/ismailmo1/mfp-wrapped/issues",
+        "About": "Developed by [Ismail](https://github.com/ismailmo1)\n"
+        "---\n"
+        "Send me a [message](mailto:ismailmo4@gmail.com) if you have any ideas"
+        "or suggestions!",
+    },
 )
 st.title("myfitnesspal wrapped 🌯")
 with st.sidebar:
-    mfp_user = st.text_input(
-        "myfitnesspal username", "ismailmo", placeholder="username"
-    )
-    st.caption("Don't forget to make your diary public!")
-    today = datetime.now().date()
-    try:
-        start_date, end_date = st.date_input(
-            "Date range to analyse",
-            value=(today - timedelta(weeks=1), today),
-            max_value=today,
+    with st.form("data_input"):
+        mfp_user = st.text_input(
+            "myfitnesspal username", "ismailmo", placeholder="username"
         )
-    except ValueError:
-        st.warning("you must pick a date range (start date - end date)!")
+        st.caption("Don't forget to make your diary public!")
+        today = datetime.now().date()
+        try:
+            start_date, end_date = st.date_input(
+                "Date range to analyse",
+                value=(today - timedelta(weeks=1), today),
+                max_value=today,
+            )
+        except ValueError:
+            st.warning("you must pick a date range (start date - end date)!")
 
-    start_btn = st.button("Get Data")
+        start_btn = st.form_submit_button("Get Data")
 
 if "welcomed" not in st.session_state:
     intial_page_load()
