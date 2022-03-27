@@ -42,7 +42,8 @@
 	"extensions": [
 		"ms-python.python",
 		"ms-python.vscode-pylance",
-		"njpwerner.autodocstring"
+		"njpwerner.autodocstring",
+		"bungcip.better-toml"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [

@@ -1,7 +1,8 @@
 {
-    "python.analysis.extraPaths": [
-        "app/"
-    ],
     "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.insert(0, './app')"
+    ]
 }
