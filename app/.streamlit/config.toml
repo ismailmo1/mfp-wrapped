@@ -1,4 +1,5 @@
 
+
 # Below are all the sections and options you can have in ~/.streamlit/config.toml.
 
 [global]
@@ -95,7 +96,7 @@ showErrorDetails = false
 
 # The port where the server will listen for browser connections.
 # Default: 8501
-port = 8501
+port = 443
 
 # The base path for the URL where Streamlit should be served from.
 # Default: ""
