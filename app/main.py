@@ -103,11 +103,11 @@ def intial_page_load():
     starter_img = st.empty()
 
     starter_msg.markdown(
-        """Inspired by Spotify's [Wrapped]\
-    (https://en.wikipedia.org/wiki/Spotify_Wrapped) marketing campaign
-
-    ← Enter your mfp username in the sidebar, make your diary public and
-    let's see what you've been eating!"""
+        """Inspired by Spotify's
+         [Wrapped](https://en.wikipedia.org/wiki/Spotify_Wrapped)
+         marketing campaign  
+        ← Enter your mfp username in the sidebar, make your diary public and
+        let's see what you've been eating!"""  # noqa
     )
 
     with starter_img.expander("Preview"):
