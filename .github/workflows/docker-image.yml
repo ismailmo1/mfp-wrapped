@@ -17,5 +17,5 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ghcr.io/ismailmo1/wrapped:latest
     - name: Push the Docker image
-      run: docker push ghcr.io/ismailmo1/wrapped:latest:latest
+      run: docker push ghcr.io/ismailmo1/wrapped:latest
     
