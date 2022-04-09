@@ -14,7 +14,7 @@ env:
   IMAGE_NAME: ismailmo1/wrapped
 
 jobs:
-  build-and-push-image:
+  update-docker-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,3 +44,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: restart container
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.LINODE_HOST }}
+        username: ${{ secrets.LINODE_USERNAME }}
+        password: ${{ secrets.LINODE_PASSWORD }}
+        port: ${{ secrets.LINODE_PORT }}
+        script: |
+          docker pull ghcr.io/ismailmo1/wrapped:main
+          docker stop streamlit-wrapped && docker rm streamlit-wrapped
+          docker run -d --network linode-config_default --env VIRTUAL_HOST=wrapped.ismailmo.com --env LETSENCRYPT_HOST=wrapped.ismailmo.com --name streamlit-wrapped ghcr.io/ismailmo1/wrapped:main
+
