@@ -30,7 +30,7 @@ def plot_most_common(diary_df: pd.DataFrame, top_n=10) -> Figure:
         most_common,
         orientation="h",
         title="Most common diary entries",
-        labels={"food": "diary entry", "value": "frequency"},
+        labels={"food": "food name", "value": "number of entries"},
     )
     fig.update_layout(showlegend=False)
 
