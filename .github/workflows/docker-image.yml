@@ -49,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: restart container
+      needs: "update-docker-image"
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.LINODE_HOST }}
