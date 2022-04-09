@@ -85,6 +85,13 @@ def plot_macro_treemap(diary_df: pd.DataFrame, macro: str = "all") -> Figure:
         values="kcal",
         hover_data=["meals"],
         title="Calorie Intake Breakdown",
+        color="variable",
+        color_discrete_map={
+            "(?)": "darkgrey",
+            "carbs_kcal": "darkturquoise",
+            "protein_kcal": "mediumorchid",
+            "fat_kcal": "tomato",
+        },
     )
 
 
