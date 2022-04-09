@@ -46,10 +46,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   
   deploy:
+    needs: "update-docker-image"
     runs-on: ubuntu-latest
     steps:
     - name: restart container
-      needs: "update-docker-image"
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.LINODE_HOST }}
