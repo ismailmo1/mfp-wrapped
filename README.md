@@ -24,7 +24,9 @@ You can view how many days you logged food and your totals
 
 ![total intake](app/images/totals.png)
 
-Take a deep dive with this interactive treemap plot of your food intake for each macronutrients (carbohydrates, fats and protein)
+Play around with the interactive treemap plot to discover which foods make up your calorie intake for each macronutrient i.e. what food is your largest source of carbohydrates, fats and protein?
+
+https://user-images.githubusercontent.com/15056360/163423279-db9911a7-bcbd-4779-a844-289f300f56c2.mp4
 
 Analyse adherence by viewing how well you have been sticking to your goal intake - you can measure by calories or grams for each macronutrient
 
