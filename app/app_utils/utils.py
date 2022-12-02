@@ -1,22 +1,27 @@
+import asyncio
 from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-from myfitnesspal.diary_scraping import get_diary_data
+from myfitnesspal.diary_scraping import (
+    async_get_diary_data,
+    async_scrape_diaries,
+)
 
 load_dotenv()
 
 
-@st.cache(suppress_st_warning=True)
-def load_mfp_data(start_date: date, end_date: date, user: str):
+async def async_load_mfp_data(start_date: date, end_date: date, user: str):
+
+    extracted_diaries = await async_scrape_diaries(start_date, end_date, user)
     prog_bar = st.progress(0)
     date_update = st.empty()
     diary_df = pd.DataFrame()
     progress = 0
     num_days = (end_date - start_date).days + 1
 
-    for idx, df in enumerate(get_diary_data(start_date, end_date, user=user)):
+    for idx, df in enumerate(async_get_diary_data(extracted_diaries)):
         progress = round((idx + 1) / num_days, 2)
         prog_bar.progress(progress)
         date_update.text(
@@ -28,6 +33,11 @@ def load_mfp_data(start_date: date, end_date: date, user: str):
     date_update.empty()
 
     return diary_df
+
+
+@st.cache(suppress_st_warning=True)
+def grab_mfp_data(start_date, end_date, user):
+    return asyncio.run(async_load_mfp_data(start_date, end_date, user))
 
 
 def show_metrics(metrics: dict) -> None:

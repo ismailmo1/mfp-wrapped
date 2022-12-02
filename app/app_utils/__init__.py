@@ -1,1 +1,1 @@
-from .utils import load_mfp_data, show_metrics  # NOQA
+from .utils import grab_mfp_data, show_metrics  # NOQA
