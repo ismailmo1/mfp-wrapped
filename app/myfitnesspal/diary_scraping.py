@@ -1,8 +1,11 @@
+import asyncio
 import json
 from datetime import date, timedelta
+from typing import Generator, Optional
 
 import pandas as pd
 import requests
+from httpx import AsyncClient
 from requests import Session
 
 
@@ -58,7 +61,7 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = [
         "food",
         *[str(col).lower().replace("  ", "_") for col in df.iloc[0][1:]],
-    ]
+    ]  # type: ignore
     df.drop(0, inplace=True)
 
     # remove junk rows with no food data
@@ -81,7 +84,7 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
     for col in daily_goals_df.columns[1:]:
         new_cols.append("goal_" + str(col).split(" ")[0].lower())
 
-    daily_goals_df.columns = new_cols
+    daily_goals_df.columns = new_cols  # type:ignore
 
     # add daily goals columsn to df
     new_df = pd.concat([df, daily_goals_df])
@@ -118,7 +121,9 @@ def clean_mfp_extract(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_diary(
-    logged_in_mfp_session: Session, diary_date: date, user: str = None
+    logged_in_mfp_session: Session,
+    diary_date: date,
+    user: Optional[str] = None,
 ) -> pd.DataFrame:
     """extract dataframe of food diary from date.
 
@@ -157,9 +162,9 @@ def get_diary_data(
     start_date: date,
     end_date: date,
     public: bool = True,
-    user: str = None,
-    pwd: str = None,
-) -> pd.DataFrame:
+    user: Optional[str] = None,
+    pwd: Optional[str] = None,
+) -> Generator[pd.DataFrame, None, None]:
 
     if public:
         mfp_session = Session()
@@ -176,3 +181,33 @@ def get_diary_data(
         diary_df = extract_diary(mfp_session, start_date, user)
         start_date += timedelta(days=1)
         yield diary_df
+
+
+async def async_scrape_diary_data(user, date, client):
+    url = f"https://www.myfitnesspal.com/food/diary/{user}?date={date}"
+    res = await client.get(url)
+    return date, res.text
+
+
+async def async_scrape_diaries(start_date: date, end_date: date, user: str):
+    async_client = AsyncClient()
+    coroutines = []
+    for diary_date in pd.date_range(start_date, end_date):
+        coroutines.append(
+            async_scrape_diary_data(user, diary_date, async_client)
+        )
+    extracted_diaries = await asyncio.gather(*coroutines)
+    return extracted_diaries
+
+
+def async_get_diary_data(extracted_diaries):
+    for diary_date, diary in extracted_diaries:
+        try:
+            html_df = pd.read_html(diary, flavor="lxml")[0]
+            clean_df = clean_mfp_extract(html_df)
+            clean_df["date"] = diary_date
+            yield clean_df
+        except ValueError as error:
+            raise ValueError(
+                "No diary table found for {diary_date}!"
+            ) from error

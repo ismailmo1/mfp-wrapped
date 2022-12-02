@@ -1,11 +1,11 @@
 """
 Entry point for streamlit app
 """
+import time
 from datetime import datetime, timedelta
 
 import streamlit as st
-
-from app_utils import load_mfp_data, show_metrics
+from app_utils import grab_mfp_data, show_metrics
 from myfitnesspal.analysis import (
     plot_intake_goals,
     plot_macro_treemap,
@@ -21,9 +21,14 @@ def run_analysis():
     """
 
     try:
-        st.session_state["diary_df"] = load_mfp_data(
+        start_time = time.perf_counter()
+
+        st.session_state["diary_df"] = grab_mfp_data(
             start_date, end_date, mfp_user
         ).copy()
+
+        elapsed = time.perf_counter() - start_time
+        st.text(f"grabbed data in {elapsed:.2f} seconds")
     except ValueError:
         st.error(
             f"No Diary found for {mfp_user} - did you make the diary public?"
@@ -119,7 +124,7 @@ def intial_page_load():
         run_analysis()
 
 
-st.set_page_config(
+st.set_page_config(  # type:ignore
     "mfp wrapped",
     page_icon="images/mfp-icon.png",
     layout="wide",
@@ -145,7 +150,7 @@ with st.sidebar:
                 "Date range to analyse",
                 value=(today - timedelta(weeks=1), today),
                 max_value=today,
-            )
+            )  # type:ignore
         except ValueError:
             st.warning("you must pick a date range (start date - end date)!")
 
