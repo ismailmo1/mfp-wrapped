@@ -6,12 +6,17 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 from app_utils import grab_mfp_data, show_metrics
-from myfitnesspal.analysis import (
+from app_utils.plots import (
     plot_intake_goals,
     plot_macro_treemap,
     plot_most_common,
-    total_logged_days,
+)
+from myfitnesspal.analysis import (
+    get_intake_goals,
+    get_most_common,
+    get_total_logged_days,
     total_macros,
+    unpivot_food_macros,
 )
 
 
@@ -23,9 +28,7 @@ def run_analysis():
     try:
         start_time = time.perf_counter()
 
-        st.session_state["diary_df"] = grab_mfp_data(
-            start_date, end_date, mfp_user
-        ).copy()
+        diary_df = grab_mfp_data(start_date, end_date, mfp_user).copy()
 
         elapsed = time.perf_counter() - start_time
         st.text(f"grabbed data in {elapsed:.2f} seconds")
@@ -34,19 +37,29 @@ def run_analysis():
             f"No Diary found for {mfp_user} - did you make the diary public?"
         )
         st.stop()
-    diary_df = st.session_state["diary_df"]
 
+    num_days_tracked = get_total_logged_days(diary_df)
+    total_num_days = (end_date - start_date).days + 1
+
+    most_common_foods = get_most_common(diary_df)
+    melted_food_df = unpivot_food_macros(
+        diary_df,
+    )
+    intake_goals = get_intake_goals(diary_df)
+    st.image("images/kermit.jpg")
     st.metric(
         "Total days logged",
-        f"{total_logged_days(diary_df)}/{(end_date-start_date).days +1}",
+        f"{num_days_tracked}/{total_num_days}",
     )
 
     st.header("Totals")
     show_metrics(total_macros(diary_df))
-    st.plotly_chart(plot_most_common(diary_df), use_container_width=True)
+    st.plotly_chart(
+        plot_most_common(most_common_foods), use_container_width=True
+    )
 
     st.plotly_chart(
-        plot_macro_treemap(diary_df, st.session_state["selected_macro"]),
+        plot_macro_treemap(melted_food_df, st.session_state["selected_macro"]),
         use_container_width=True,
     )
     st.radio(
@@ -69,7 +82,7 @@ def run_analysis():
 
     st.plotly_chart(
         plot_intake_goals(
-            diary_df,
+            intake_goals,
             calories=st.session_state["show_calories"],
             units=st.session_state["selected_intake_units"],
         ),
@@ -111,7 +124,7 @@ def intial_page_load():
         """Inspired by Spotify's
          [Wrapped](https://en.wikipedia.org/wiki/Spotify_Wrapped)
          marketing campaign  
-        ← Enter your mfp username in the sidebar, make your diary public and
+        ← Enter your mfp username in the sidebar (or use mine), make your diary public and
         let's see what you've been eating!"""  # noqa
     )
 
