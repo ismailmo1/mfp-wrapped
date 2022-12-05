@@ -6,6 +6,12 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 from app_utils import grab_mfp_data, show_metrics
+from app_utils.cards import (
+    generate_adherence_card,
+    generate_days_tracked_card,
+    generate_top_foods_card,
+    generate_total_kcal_card,
+)
 from app_utils.plots import (
     plot_intake_goals,
     plot_macro_treemap,
@@ -46,14 +52,30 @@ def run_analysis():
         diary_df,
     )
     intake_goals = get_intake_goals(diary_df)
-    st.image("images/kermit.jpg")
+    total_macro_metrics = total_macros(diary_df)
+    kcal_card = generate_total_kcal_card(
+        total_macro_metrics["Calories (kcal)"]
+    )
+    top5_card = generate_top_foods_card(
+        most_common_foods[:5].to_dict()  # type:ignore
+    )
+    days_tracked_card = generate_days_tracked_card(
+        num_days_tracked, total_num_days, 0, 0
+    )
+    adherence_card = generate_adherence_card(0.5)
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.image(kcal_card)
+    col2.image(top5_card)
+    col3.image(days_tracked_card)
+    col4.image(adherence_card)
     st.metric(
         "Total days logged",
         f"{num_days_tracked}/{total_num_days}",
     )
 
     st.header("Totals")
-    show_metrics(total_macros(diary_df))
+    show_metrics(total_macro_metrics)
     st.plotly_chart(
         plot_most_common(most_common_foods), use_container_width=True
     )
