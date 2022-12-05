@@ -4,7 +4,6 @@ Helper functions to analyse myfitnesspal diary data
 from typing import Dict
 
 import pandas as pd
-from numerize import numerize as nz
 
 
 def get_most_common(diary_df: pd.DataFrame, top_n=10) -> pd.Series:
@@ -108,13 +107,13 @@ def get_intake_goals(diary_df: pd.DataFrame):
     return daily_data
 
 
-def total_macros(diary_df: pd.DataFrame) -> Dict[str, str]:
+def total_macros(diary_df: pd.DataFrame) -> Dict[str, int]:
     """
     Return totals for calories and each macro
     """
     return {
-        "Calories (kcal)": nz.numerize(int(diary_df["calories_kcal"].sum())),
-        "Carbs (g)": nz.numerize(int(diary_df["carbs_g"].sum())),
-        "Fats (g)": nz.numerize(int(diary_df["fat_g"].sum())),
-        "Protein (g)": nz.numerize(int(diary_df["protein_g"].sum())),
+        "Calories (kcal)": int(diary_df["calories_kcal"].sum()),
+        "Carbs (g)": int(diary_df["carbs_g"].sum()),
+        "Fats (g)": int(diary_df["fat_g"].sum()),
+        "Protein (g)": int(diary_df["protein_g"].sum()),
     }
