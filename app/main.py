@@ -18,7 +18,9 @@ from app_utils.plots import (
     plot_most_common,
 )
 from myfitnesspal.analysis import (
+    get_adherence_perc,
     get_intake_goals,
+    get_longest_streaks,
     get_most_common,
     get_total_logged_days,
     total_macros,
@@ -37,7 +39,10 @@ def run_analysis():
         diary_df = grab_mfp_data(start_date, end_date, mfp_user).copy()
 
         elapsed = time.perf_counter() - start_time
-        st.text(f"grabbed data in {elapsed:.2f} seconds")
+        st.text(
+            f"grabbed data from {start_date} to {end_date} in {elapsed:.2f} "
+            "seconds"
+        )
     except ValueError:
         st.error(
             f"No Diary found for {mfp_user} - did you make the diary public?"
@@ -52,7 +57,9 @@ def run_analysis():
         diary_df,
     )
     intake_goals = get_intake_goals(diary_df)
+    adherence_perc = get_adherence_perc(intake_goals)
     total_macro_metrics = total_macros(diary_df)
+    longest_streak, longest_blank = get_longest_streaks(diary_df)
     kcal_card = generate_total_kcal_card(
         total_macro_metrics["Calories (kcal)"]
     )
@@ -60,9 +67,9 @@ def run_analysis():
         most_common_foods[:5].to_dict()  # type:ignore
     )
     days_tracked_card = generate_days_tracked_card(
-        num_days_tracked, total_num_days, 0, 0
+        num_days_tracked, total_num_days, longest_streak, longest_blank
     )
-    adherence_card = generate_adherence_card(0.5)
+    adherence_card = generate_adherence_card(adherence_perc)
     col1, col2, col3, col4 = st.columns(4)
 
     col1.image(kcal_card)

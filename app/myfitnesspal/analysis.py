@@ -1,7 +1,7 @@
 """
 Helper functions to analyse myfitnesspal diary data
 """
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas as pd
 
@@ -117,3 +117,70 @@ def total_macros(diary_df: pd.DataFrame) -> Dict[str, int]:
         "Fats (g)": int(diary_df["fat_g"].sum()),
         "Protein (g)": int(diary_df["protein_g"].sum()),
     }
+
+
+def get_longest_streaks(diary_df: pd.DataFrame) -> Tuple[int, int]:
+    """Calculate longest tracking streak and blank
+
+    Args:
+        diary_df (pd.DataFrame): scraped diary
+
+    Returns:
+        Tuple[int, int]: Longest tracked streak, longest blank
+    """
+    diary_df = diary_df.drop_duplicates(subset="date")
+    diary_df["tracked"] = True
+    min_date = diary_df["date"].min()
+    max_date = diary_df["date"].max()
+    all_dates = pd.Series(pd.date_range(min_date, max_date), name="all_dates")
+
+    streak_df = diary_df.merge(
+        all_dates, how="outer", right_on="all_dates", left_on="date"
+    ).fillna(False)
+
+    streak_df = (
+        streak_df.set_index("all_dates", drop=True)
+        .drop("date", axis=1)
+        .sort_index()
+    )
+    streak_df["start_of_streak"] = streak_df["tracked"].ne(
+        streak_df["tracked"].shift()
+    )
+    streak_df["streak_id"] = streak_df["start_of_streak"].cumsum()
+    streak_df["streak_counter"] = streak_df.groupby("streak_id").cumcount() + 1
+
+    non_tracked_days = streak_df.loc[streak_df["tracked"] == False, :]  # noqa
+    tracked_days = streak_df.loc[streak_df["tracked"] == True, :]  # noqa
+
+    longest_tracked_streak = tracked_days["streak_counter"].max()
+    longest_blank_streak = non_tracked_days["streak_counter"].max()
+
+    if pd.isnull(longest_blank_streak):
+        longest_blank_streak = 0
+    if pd.isnull(longest_tracked_streak):
+        longest_tracked_streak = 0
+
+    return (longest_tracked_streak, longest_blank_streak)
+
+
+def get_adherence_perc(
+    intake_goals: pd.DataFrame, perc_tolerance: float = 0.1
+) -> float:
+
+    total_days = len(intake_goals)
+
+    kcal_goals = intake_goals.loc[:, ["calories_kcal", "goal_calories_kcal"]]
+    kcal_goals["upper_kcal_tol"] = kcal_goals["goal_calories_kcal"] * (
+        1 + perc_tolerance
+    )
+    kcal_goals["lower_kcal_tol"] = kcal_goals["goal_calories_kcal"] * (
+        1 - perc_tolerance
+    )
+
+    kcal_goals["within_tolerance"] = (
+        kcal_goals["calories_kcal"] < kcal_goals["upper_kcal_tol"]
+    ) & (kcal_goals["calories_kcal"] > kcal_goals["lower_kcal_tol"])
+
+    adhered_days = kcal_goals["within_tolerance"].sum()
+
+    return adhered_days / total_days
