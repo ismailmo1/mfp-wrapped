@@ -151,12 +151,12 @@ def generate_adherence_card(adherence: float):
     draw, adherence_card = create_base_card((0, 102, 238))
 
     phrase_imgs = (
-        ("Don't tell me what to do", "../app/images/kermit.jpg"),
+        ("None of my business though", "../app/images/kermit.jpg"),
         (
             "Sometimes Maybe Good,\nSometimes Maybe Shit",
             "../app/images/gattuso.png",
         ),
-        ("Mr Consistent", "../app/images/checklist.jpg`"),
+        ("Mr Consistent", "../app/images/checklist.jpg"),
     )
 
     def get_adherence_level(adherence_perc: float):
