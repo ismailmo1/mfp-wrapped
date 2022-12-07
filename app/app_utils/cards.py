@@ -40,9 +40,7 @@ def generate_total_kcal_card(num_kcal: int):
     draw, card = create_base_card((148, 240, 180))
     card_width, card_height = card.size
     font_size = 90
-    title_fnt = ImageFont.truetype(
-        "/home/ismail/.local/share/fonts/GothamBold.ttf", font_size
-    )
+    title_fnt = ImageFont.truetype(FONT_PATH, font_size)
     _, _, num_kcal_w, _ = draw.textbbox(
         (0, 0), f"{num_kcal:,}", font=title_fnt
     )
@@ -50,9 +48,7 @@ def generate_total_kcal_card(num_kcal: int):
     # shirnk font size for large total_kcal displays
     while num_kcal_w > card_width - 20:
         font_size -= 3
-        title_fnt = ImageFont.truetype(
-            "/home/ismail/.local/share/fonts/GothamBold.ttf", font_size
-        )
+        title_fnt = ImageFont.truetype(FONT_PATH, font_size)
         _, _, num_kcal_w, _ = draw.textbbox(
             (0, 0), f"{num_kcal:,}", font=title_fnt
         )
