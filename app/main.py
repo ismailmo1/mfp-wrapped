@@ -6,12 +6,25 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 from app_utils import grab_mfp_data, show_metrics
-from myfitnesspal.analysis import (
+from app_utils.cards import (
+    generate_adherence_card,
+    generate_days_tracked_card,
+    generate_top_foods_card,
+    generate_total_kcal_card,
+)
+from app_utils.plots import (
     plot_intake_goals,
     plot_macro_treemap,
     plot_most_common,
-    total_logged_days,
+)
+from myfitnesspal.analysis import (
+    get_adherence_perc,
+    get_intake_goals,
+    get_longest_streaks,
+    get_most_common,
+    get_total_logged_days,
     total_macros,
+    unpivot_food_macros,
 )
 
 
@@ -23,30 +36,62 @@ def run_analysis():
     try:
         start_time = time.perf_counter()
 
-        st.session_state["diary_df"] = grab_mfp_data(
-            start_date, end_date, mfp_user
-        ).copy()
+        diary_df = grab_mfp_data(start_date, end_date, mfp_user).copy()
 
         elapsed = time.perf_counter() - start_time
-        st.text(f"grabbed data in {elapsed:.2f} seconds")
+        st.text(
+            f"grabbed data from {start_date} to {end_date} in {elapsed:.2f} "
+            "seconds"
+        )
     except ValueError:
         st.error(
             f"No Diary found for {mfp_user} - did you make the diary public?"
         )
         st.stop()
-    diary_df = st.session_state["diary_df"]
 
+    num_days_tracked = get_total_logged_days(diary_df)
+    total_num_days = (end_date - start_date).days + 1
+
+    most_common_foods = get_most_common(diary_df)
+    melted_food_df = unpivot_food_macros(
+        diary_df,
+    )
+    intake_goals = get_intake_goals(diary_df)
+    tolerance = 0.1
+    adherence_perc = get_adherence_perc(intake_goals, perc_tolerance=tolerance)
+    total_macro_metrics = total_macros(diary_df)
+    longest_streak, longest_blank = get_longest_streaks(diary_df)
+    kcal_card = generate_total_kcal_card(
+        total_macro_metrics["Calories (kcal)"]
+    )
+    top5_card = generate_top_foods_card(
+        most_common_foods[:5].to_dict()  # type:ignore
+    )
+    days_tracked_card = generate_days_tracked_card(
+        num_days_tracked, total_num_days, longest_streak, longest_blank
+    )
+    adherence_card = generate_adherence_card(
+        adherence_perc, tolerance=tolerance
+    )
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.image(kcal_card)
+    col2.image(top5_card)
+    col3.image(days_tracked_card)
+    col4.image(adherence_card)
     st.metric(
         "Total days logged",
-        f"{total_logged_days(diary_df)}/{(end_date-start_date).days +1}",
+        f"{num_days_tracked}/{total_num_days}",
     )
 
     st.header("Totals")
-    show_metrics(total_macros(diary_df))
-    st.plotly_chart(plot_most_common(diary_df), use_container_width=True)
+    show_metrics(total_macro_metrics)
+    st.plotly_chart(
+        plot_most_common(most_common_foods), use_container_width=True
+    )
 
     st.plotly_chart(
-        plot_macro_treemap(diary_df, st.session_state["selected_macro"]),
+        plot_macro_treemap(melted_food_df, st.session_state["selected_macro"]),
         use_container_width=True,
     )
     st.radio(
@@ -69,7 +114,7 @@ def run_analysis():
 
     st.plotly_chart(
         plot_intake_goals(
-            diary_df,
+            intake_goals,
             calories=st.session_state["show_calories"],
             units=st.session_state["selected_intake_units"],
         ),
@@ -111,12 +156,14 @@ def intial_page_load():
         """Inspired by Spotify's
          [Wrapped](https://en.wikipedia.org/wiki/Spotify_Wrapped)
          marketing campaign  
-        ← Enter your mfp username in the sidebar, make your diary public and
+        ← Enter your mfp username in the sidebar (or use mine), make your diary public and
         let's see what you've been eating!"""  # noqa
     )
 
     with starter_img.expander("Preview"):
-        st.image("images/himym.jpg", caption="what you can look forward to")
+        st.image(
+            "images/card_preview.png", caption="what you can look forward to"
+        )
 
     if start_btn:
         starter_msg.empty()

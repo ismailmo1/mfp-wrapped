@@ -2,6 +2,7 @@
  <img align="center" alt="Ismail's LinkedIN" width="50px" src="app/images/mfp-icon.png" /> <h1><b>myfitnesspal WRAPPED</b></h1>
  </div>
 
+![cards](app/images/card_preview.png)
 Visit the live website [here](https://wrapped.ismailmo.com) and try it out for yourself!
 
 Inspired by spotify's wrapped marketing campaign I wanted to create something similar to analyse my eating habits. Many people use myfitnesspal: a food diary app to track their meals and food intake - usually to help them achieve some fitness goal, however myfitnesspal's free tier provides limited capabilities to analyse this data in any meaningful way.

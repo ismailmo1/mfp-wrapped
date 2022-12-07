@@ -8,6 +8,7 @@ from myfitnesspal.diary_scraping import (
     async_get_diary_data,
     async_scrape_diaries,
 )
+from numerize import numerize as nz
 
 load_dotenv()
 
@@ -49,8 +50,4 @@ def show_metrics(metrics: dict) -> None:
     num_columns = len(metrics)
     columns = st.columns(num_columns)
     for idx, (key, item) in enumerate(metrics.items()):
-
-        if isinstance(item, tuple):
-            columns[idx].metric(label=key, value=item[0], delta=item[1])
-        else:
-            columns[idx].metric(label=key, value=item)
+        columns[idx].metric(label=key, value=nz.numerize(item))
