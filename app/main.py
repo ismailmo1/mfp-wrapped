@@ -57,7 +57,8 @@ def run_analysis():
         diary_df,
     )
     intake_goals = get_intake_goals(diary_df)
-    adherence_perc = get_adherence_perc(intake_goals)
+    tolerance = 0.1
+    adherence_perc = get_adherence_perc(intake_goals, perc_tolerance=tolerance)
     total_macro_metrics = total_macros(diary_df)
     longest_streak, longest_blank = get_longest_streaks(diary_df)
     kcal_card = generate_total_kcal_card(
@@ -69,7 +70,9 @@ def run_analysis():
     days_tracked_card = generate_days_tracked_card(
         num_days_tracked, total_num_days, longest_streak, longest_blank
     )
-    adherence_card = generate_adherence_card(adherence_perc)
+    adherence_card = generate_adherence_card(
+        adherence_perc, tolerance=tolerance
+    )
     col1, col2, col3, col4 = st.columns(4)
 
     col1.image(kcal_card)
@@ -158,7 +161,9 @@ def intial_page_load():
     )
 
     with starter_img.expander("Preview"):
-        st.image("images/himym.jpg", caption="what you can look forward to")
+        st.image(
+            "images/card_preview.png", caption="what you can look forward to"
+        )
 
     if start_btn:
         starter_msg.empty()
