@@ -2,7 +2,7 @@ import math
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-FONT_PATH = "/home/ismail/.local/share/fonts/GothamMedium.ttf"
+FONT_PATH = "assets/GothamMedium.ttf"
 ICON_PATH = "images/mfp-icon.png"
 CARD_HEIGHT = 667
 CARD_WIDTH = 375
