@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timedelta
 
 import streamlit as st
-from app_utils import grab_mfp_data, show_metrics
+from app_utils import TooManyDaysError, grab_mfp_data, show_metrics
 from app_utils.cards import (
     generate_adherence_card,
     generate_days_tracked_card,
@@ -46,6 +46,12 @@ def run_analysis():
     except ValueError:
         st.error(
             f"No Diary found for {mfp_user} - did you make the diary public?"
+        )
+        st.stop()
+    except TooManyDaysError:
+        st.error(
+            "Sorry, we can't handle that much data yet - try a smaller date "
+            "range."
         )
         st.stop()
 
