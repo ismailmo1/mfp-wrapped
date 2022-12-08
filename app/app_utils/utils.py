@@ -4,6 +4,7 @@ from datetime import date, timedelta
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from httpx import ConnectTimeout
 from myfitnesspal.diary_scraping import (
     async_get_diary_data,
     async_scrape_diaries,
@@ -11,6 +12,10 @@ from myfitnesspal.diary_scraping import (
 from numerize import numerize as nz
 
 load_dotenv()
+
+
+class TooManyDaysError(Exception):
+    pass
 
 
 async def async_load_mfp_data(start_date: date, end_date: date, user: str):
@@ -38,7 +43,12 @@ async def async_load_mfp_data(start_date: date, end_date: date, user: str):
 
 @st.cache(suppress_st_warning=True)
 def grab_mfp_data(start_date, end_date, user):
-    return asyncio.run(async_load_mfp_data(start_date, end_date, user))
+    if end_date - start_date > timedelta(days=365):
+        raise TooManyDaysError
+    try:
+        return asyncio.run(async_load_mfp_data(start_date, end_date, user))
+    except ConnectTimeout:
+        raise TooManyDaysError
 
 
 def show_metrics(metrics: dict) -> None:
