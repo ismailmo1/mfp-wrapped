@@ -19,6 +19,7 @@ def get_most_common(diary_df: pd.DataFrame, top_n=10) -> pd.Series:
     most_common = (
         diary_df.groupby("food")
         .count()["date"]
+        .drop("")
         .sort_values(ascending=False)[0:top_n]
     )
     return most_common
