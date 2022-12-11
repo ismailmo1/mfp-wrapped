@@ -29,7 +29,9 @@ def plot_most_common(most_common: pd.Series):
     return fig
 
 
-def plot_macro_treemap(melted_df: pd.DataFrame, macro: str = "all"):
+def plot_macro_treemap(
+    melted_df: pd.DataFrame, macro: str = "all", num_unique_foods=10
+):
     """
     plotly treemap of diary for macronutrient with hierarchy of food and date
     """
@@ -39,6 +41,12 @@ def plot_macro_treemap(melted_df: pd.DataFrame, macro: str = "all"):
     else:
         path = [px.Constant("all"), "food", "date"]
         melted_df = melted_df[melted_df["variable"] == f"{macro}_kcal"]
+    # bin all non top num_unique_foods into 'other' category to reduce boxes
+    # in treemap
+    other_foods = list(
+        melted_df["food"].value_counts()[num_unique_foods:].index
+    )
+    melted_df["food"] = melted_df["food"].replace(other_foods, "other")
 
     return px.treemap(
         melted_df,
