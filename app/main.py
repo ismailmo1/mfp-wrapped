@@ -1,9 +1,11 @@
 """
 Entry point for streamlit app
 """
+import asyncio
 import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
+import pandas as pd
 import streamlit as st
 from app_utils import TooManyDaysError, grab_mfp_data, show_metrics
 from app_utils.cards import (
@@ -28,15 +30,12 @@ from myfitnesspal.analysis import (
 )
 
 
-def run_analysis():
-    """
-    main function to scrape mfp diaries and analyse data
-    """
-
+async def get_diary_for_range(start_date: date, end_date: date, mfp_user: str):
     try:
         start_time = time.perf_counter()
 
-        diary_df = grab_mfp_data(start_date, end_date, mfp_user).copy()
+        scraped_diary_df = await grab_mfp_data(start_date, end_date, mfp_user)
+        diary_df = scraped_diary_df.copy()
 
         elapsed = time.perf_counter() - start_time
         st.text(
@@ -54,6 +53,14 @@ def run_analysis():
             "range."
         )
         st.stop()
+
+    return diary_df
+
+
+def analyse_and_plot(diary_df: pd.DataFrame, start_date: date, end_date: date):
+    """
+    main function to add data plots to page
+    """
 
     num_days_tracked = get_total_logged_days(diary_df)
     total_num_days = (end_date - start_date).days + 1
@@ -144,11 +151,11 @@ def run_analysis():
         )
 
 
-def intial_page_load():
+def show_landing_page():
     """
     run on initial page load
     """
-    st.session_state["welcomed"] = True
+    st.session_state["returning_user"] = True
     # calorie breakdown option
     st.session_state["selected_macro"] = "all"
     # intake vs goals chart option
@@ -171,46 +178,49 @@ def intial_page_load():
             "images/card_preview.png", caption="what you can look forward to"
         )
 
+
+async def main():
+    st.set_page_config(  # type:ignore
+        "mfp wrapped",
+        page_icon="images/mfp-icon.png",
+        layout="wide",
+        menu_items={
+            "Get Help": "https://www.linkedin.com/in/ismailmo-chem/",
+            "Report a bug": "https://github.com/ismailmo1/mfp-wrapped/issues",
+            "About": "Developed by [Ismail](https://github.com/ismailmo1)\n"
+            "---\n"
+            "Send me a [message](mailto:ismailmo4@gmail.com) if you have any"
+            "ideas or suggestions!",
+        },
+    )
+    st.title("myfitnesspal wrapped 🌯")
+    with st.sidebar:
+        with st.form("data_input"):
+            mfp_user = st.text_input(
+                "myfitnesspal username", "ismailmo", placeholder="username"
+            )
+            st.caption("Don't forget to make your diary public!")
+            today = datetime.now().date()
+            try:
+                start_date, end_date = st.date_input(
+                    "Date range to analyse",
+                    value=(today - timedelta(weeks=1), today),
+                    max_value=today,
+                )  # type:ignore
+            except ValueError:
+                st.warning(
+                    "you must pick a date range (start date - end date)!"
+                )
+                return
+            finally:
+                start_btn = st.form_submit_button("Get Data")
+    if "returning_user" not in st.session_state:
+        show_landing_page()
     if start_btn:
-        starter_msg.empty()
-        starter_img.empty()
-        run_analysis()
+        # run analysis if welcome page already viewed
+        diary_df = await get_diary_for_range(start_date, end_date, mfp_user)
+        analyse_and_plot(diary_df, start_date, end_date)
 
 
-st.set_page_config(  # type:ignore
-    "mfp wrapped",
-    page_icon="images/mfp-icon.png",
-    layout="wide",
-    menu_items={
-        "Get Help": "https://www.linkedin.com/in/ismailmo-chem/",
-        "Report a bug": "https://github.com/ismailmo1/mfp-wrapped/issues",
-        "About": "Developed by [Ismail](https://github.com/ismailmo1)\n"
-        "---\n"
-        "Send me a [message](mailto:ismailmo4@gmail.com) if you have any ideas"
-        "or suggestions!",
-    },
-)
-st.title("myfitnesspal wrapped 🌯")
-with st.sidebar:
-    with st.form("data_input"):
-        mfp_user = st.text_input(
-            "myfitnesspal username", "ismailmo", placeholder="username"
-        )
-        st.caption("Don't forget to make your diary public!")
-        today = datetime.now().date()
-        try:
-            start_date, end_date = st.date_input(
-                "Date range to analyse",
-                value=(today - timedelta(weeks=1), today),
-                max_value=today,
-            )  # type:ignore
-        except ValueError:
-            st.warning("you must pick a date range (start date - end date)!")
-
-        start_btn = st.form_submit_button("Get Data")
-
-if "welcomed" not in st.session_state:
-    intial_page_load()
-else:
-    # run analysis if welcome page already viewed
-    run_analysis()
+if __name__ == "__main__":
+    asyncio.run(main())
