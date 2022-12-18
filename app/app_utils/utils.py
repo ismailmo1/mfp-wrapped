@@ -1,4 +1,3 @@
-import asyncio
 from datetime import date, timedelta
 
 import pandas as pd
@@ -41,12 +40,11 @@ async def async_load_mfp_data(start_date: date, end_date: date, user: str):
     return diary_df
 
 
-@st.cache(suppress_st_warning=True)
-def grab_mfp_data(start_date, end_date, user):
+async def grab_mfp_data(start_date: date, end_date: date, user: str):
     if end_date - start_date > timedelta(days=365):
         raise TooManyDaysError
     try:
-        return asyncio.run(async_load_mfp_data(start_date, end_date, user))
+        return await async_load_mfp_data(start_date, end_date, user)
     except ConnectTimeout:
         raise TooManyDaysError
 
